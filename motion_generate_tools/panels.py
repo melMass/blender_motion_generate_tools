@@ -75,9 +75,6 @@ class GenarateMotion(bpy.types.Operator):
     bl_label = 'Generate Motion'
     bl_options = {'REGISTER', 'UNDO'}
 
-    text_condition: bpy.props.StringProperty(name='Text Condition')
-    diffusion_sampling_steps: bpy.props.IntProperty(name='Diffusion Sampling Steps', default=100, min=1, max=1000)
-
     @classmethod
     def poll(cls, context):
         return context.active_object and context.active_object.type == 'ARMATURE'
@@ -119,17 +116,16 @@ class GenarateMotion(bpy.types.Operator):
                     context.view_layer.update()
 
     def execute(self, context):
-        text_condition = self.text_condition
-        diffusion_sampling_steps = self.diffusion_sampling_steps
+        tool = context.window_manager.motion_generator_tools
 
         wm = context.window_manager
-        wm.progress_begin(0, diffusion_sampling_steps)
+        wm.progress_begin(0, tool.diffusion_sampling_steps)
 
         progress = []
 
         executor = executors.FunctionExecutor()
         executor.exec_function(
-            lambda: _get_motion_generator().generate(text_condition, diffusion_sampling_steps),
+            lambda: _get_motion_generator().generate(tool.text_condition, tool.diffusion_sampling_steps,tool.seed,tool.guidance_param, tool.text_samples, tool.batch_size, tool.diffusion_steps),
             line_callback=lambda l: progress.clear() or progress.append(l)
         )
 
@@ -187,12 +183,16 @@ class MotionGeneratorPanel(bpy.types.Panel):
             return
 
         col = layout.column(align=False)
-        op = col.operator(GenarateMotion.bl_idname)
-        op.text_condition = context.window_manager.motion_generator_tools.text_condition
-        op.diffusion_sampling_steps = context.window_manager.motion_generator_tools.diffusion_sampling_steps
+        col.operator(GenarateMotion.bl_idname)
 
         box = col.box().column()
         col_prop = box.column(align=True)
+        tool = context.window_manager.motion_generator_tools
         col_prop.label(text="Text Condition:")
-        col_prop.prop(context.window_manager.motion_generator_tools, 'text_condition', text="")
-        box.prop(context.window_manager.motion_generator_tools, 'diffusion_sampling_steps', slider=True)
+        col_prop.prop(tool, 'text_condition', text="")
+        box.prop(tool, 'seed')
+        box.prop(tool, 'guidance_param')
+        box.prop(tool, 'text_samples')
+        box.prop(tool, 'batch_size')
+        box.prop(tool, 'diffusion_steps')
+        box.prop(tool, 'diffusion_sampling_steps', slider=True)

@@ -66,15 +66,18 @@ class InBetweenMotionGenerator:
 
         self.model = model
 
-    def generate(self, text_condition: str, diffusion_sampling_steps: int) -> List:
-        seed = 1
-        guidance_param = 2.5
-        num_samples = 1
-        batch_size = 1
+    def generate(self, 
+                 text_condition: str, 
+                 diffusion_sampling_steps: int,
+                 seed = 1,
+                 guidance_param = 2.5, 
+                 text_samples = 1, 
+                 batch_size = 1 , 
+                 diffusion_steps = 1000) -> List:
+
         prefix_end = 0.25
         suffix_start = 0.75
 
-        diffusion_steps = 1000
 
         self.diffusion = model_util.create_gaussian_diffusion(dotdict({
             'diffusion_steps': diffusion_steps,
@@ -113,7 +116,7 @@ class InBetweenMotionGenerator:
             (batch_size, self.model.njoints, self.model.nfeats, MAX_FRAMES),
             clip_denoised=False,
             model_kwargs={'y': {
-                'text': [text_condition] * num_samples,
+                'text': [text_condition] * text_samples,
                 'inpainted_motion': input_features,
                 'inpainting_mask': inpainting_mask,
                 'scale': torch.ones(batch_size, device=dist_util.dev()) * guidance_param,  # add CFG scale to batch
