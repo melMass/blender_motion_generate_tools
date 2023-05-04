@@ -1,7 +1,7 @@
 # motion_generate_tools
 motion_generate_tools is a Blender addon for generate motion using the following Model.
 
-motion_generate_toolsは以下のモデルを使ってモーションを生成するためのBlenderアドオンです。
+motion_generate_tools is an Blender add-on for generating motions using the following models:
 
 - [MDM: Human Motion Diffusion Model](https://github.com/GuyTevet/motion-diffusion-model).
 
@@ -27,7 +27,7 @@ https://user-images.githubusercontent.com/70152495/210015009-0b190692-291d-422f-
  - Blender **3.3 LTS** or later
 
 ## Usage
-1. Open the [`smpl_model_20210421-bones.blend`](https://tstorage.info/pzmsa6pgryzr) file
+1. Open the [`smpl_model_20210421-bones.blend`](./motion_generate_tools/data/smpl_model_20210421-bones.blend) file
 2. Select the ***SMPLX-neutral*** armature
 3. Goto 3D Viewport > Sidebar > Animation > ***Motion Generator*** Panel
 4. Enter a ***Text Condition***
@@ -43,7 +43,7 @@ https://user-images.githubusercontent.com/70152495/210015009-0b190692-291d-422f-
 
 
 ### Limitation
-- Only [SMPL armature](https://tstorage.info/pzmsa6pgryzr) is available.
+- Only [SMPL armature](./motion_generate_tools/data/smpl_model_20210421-bones.blend) is available.
 - The motion to be edited is fixed.
 
 ## Acknowledgments
