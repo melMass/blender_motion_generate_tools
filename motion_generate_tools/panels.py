@@ -81,7 +81,12 @@ class GenarateMotion(bpy.types.Operator):
 
     def _apply_motion(self, context: bpy.types.Context, armature_object: bpy.types.Object, motion: List):
         scale = 1.109527
+        tool = context.window_manager.motion_generator_tools
+        
         pose_bones = armature_object.pose.bones
+        
+        armature_object.animation_data_create()
+        armature_object.animation_data.action = bpy.data.actions.new(name=tool.text_condition.replace(' ', '_'))
 
         for frame, joints in enumerate(motion, start=context.scene.frame_current):
             for bone_index_chain in t2m_kinematic_chain:
@@ -119,31 +124,32 @@ class GenarateMotion(bpy.types.Operator):
         tool = context.window_manager.motion_generator_tools
 
         wm = context.window_manager
-        wm.progress_begin(0, tool.diffusion_sampling_steps)
 
-        progress = []
+        for i in range(tool.count):
+            wm.progress_begin(0, tool.diffusion_sampling_steps)
 
-        executor = executors.FunctionExecutor()
-        executor.exec_function(
-            lambda: _get_motion_generator().generate(tool.text_condition, tool.diffusion_sampling_steps,tool.seed,tool.guidance_param, tool.text_samples, tool.batch_size, tool.diffusion_steps),
-            line_callback=lambda l: progress.clear() or progress.append(l)
-        )
+            progress = []
 
-        pattern = re.compile(r'\r [0-9]+%\|[^|]+\| ([0-9]+)/')
+            executor = executors.FunctionExecutor()
+            executor.exec_function(
+                lambda: _get_motion_generator().generate(tool.text_condition, tool.diffusion_sampling_steps,tool.seed + (i * 10),tool.guidance_param, tool.text_samples, tool.batch_size, tool.diffusion_steps),
+                line_callback=lambda l: progress.clear() or progress.append(l)
+            )
 
-        while executor.is_running:
-            time.sleep(0.5)
-            if len(progress) > 0:
-                match = pattern.match(progress.pop())
-                if match:
-                    wm.progress_update(int(match.group(1)))
+            pattern = re.compile(r'\r [0-9]+%\|[^|]+\| ([0-9]+)/')
 
-        wm.progress_end()
+            while executor.is_running:
+                time.sleep(0.5)
+                if progress:
+                    if match := pattern.match(progress.pop()):
+                        wm.progress_update(int(match[1]))
 
-        if executor.exception is not None:
-            raise executor.exception
+            wm.progress_end()
 
-        self._apply_motion(context, context.active_object, executor.return_value)
+            if executor.exception is not None:
+                raise executor.exception
+
+            self._apply_motion(context, context.active_object, executor.return_value)
 
         return {'FINISHED'}
 
@@ -190,6 +196,7 @@ class MotionGeneratorPanel(bpy.types.Panel):
         tool = context.window_manager.motion_generator_tools
         col_prop.label(text="Text Condition:")
         col_prop.prop(tool, 'text_condition', text="")
+        box.prop(tool, 'count')
         box.prop(tool, 'seed')
         box.prop(tool, 'guidance_param')
         box.prop(tool, 'text_samples')

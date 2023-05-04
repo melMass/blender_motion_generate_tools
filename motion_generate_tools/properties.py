@@ -13,6 +13,8 @@ class MotionGeneratorToolsProperties(bpy.types.PropertyGroup):
     text_samples: bpy.props.IntProperty(name='Text Samples', default=1, min=1, max=100)
     batch_size: bpy.props.IntProperty(name='Batch Size', default=1, min=1, max=100)
     diffusion_steps: bpy.props.IntProperty(name='Diffusion Steps', default=1000, min=1, max=100000)
+    count: bpy.props.IntProperty(name='Motion Generation Count', description='(WIP) Use a random seed', default=1)
+    
     
     @staticmethod
     def register():
